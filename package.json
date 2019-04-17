@@ -1,0 +1,13 @@
+{
+    "name": "plane war nodejs",
+    "version": "1.0.0",
+    "description": "plane war nodejs",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.16.4",
+        "socket.io": "^2.2.0"
+    }
+}
