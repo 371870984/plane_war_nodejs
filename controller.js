@@ -37,6 +37,18 @@ module.exports = function(port) {
         }); // broadcast to everyone in the room
       });
     });
+    //获取房间列表
+    socket.on("get_room_list", obj => {
+      Room.getRoomList(socket, () => {
+        console.log("房间列表获取成功");
+      });
+    });
+    //获取房间信息
+    socket.on("get_room_userList", obj => {
+      Room.getRoomUserList(socket, obj.roomId, () => {
+        console.log(obj.roomId, "房间信息获取成功");
+      });
+    });
     //离开房间
     socket.on("leave_room", () => {
       console.log("leave room: ", socket.userId, obj);

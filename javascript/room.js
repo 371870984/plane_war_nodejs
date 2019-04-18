@@ -15,7 +15,7 @@ function Room() {
 
   //创建新房间
   this.createRoom = (socket, roomName, callback) => {
-    // _this.roomId = avaliableRoomId++;
+    _this.roomId = avaliableRoomId++;
     _this.roomName = roomName;
     _this.currentCount++;
     socket.roomId = _this.roomId;
@@ -54,6 +54,21 @@ function Room() {
         callback();
       });
     }
+  };
+  //获取房间列表
+  this.getRoomList = function(socket, callback) {
+    socket.emit("get_room_list_success", {
+      roomList: onlineRooms
+    });
+    callback();
+  };
+  //获取房间内用户列表
+  this.getRoomUserList = function(socket, roomId, callback) {
+    socket.emit("get_room_userList_success", {
+      roomId: roomId,
+      userList: onlineRooms[roomId].userList
+    });
+    callback();
   };
   this.leaveRoom = function(socket, roomId, callback) {
     //玩家全部离开后销毁房间
