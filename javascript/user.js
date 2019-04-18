@@ -1,28 +1,34 @@
-var avaliableId = 1000;
+let avaliableId = 1000;
 
 //在线用户
-var onlineUsers = {};
+let onlineUsers = {};
 //当前在线人数
-var onlineCount = 0;
+let onlineUserCount = 0;
 
-var user = {
+const user = {
   userId: 0,
   userName: "",
-  login: function(socket, obj, fn) {
+  login: function(socket, obj, callback) {
     console.log("login: ", obj);
     this.userId = avaliableId++;
     this.userName = obj.userName;
     socket.userId = this.userId;
     socket.userName = this.userName;
     onlineUsers.userId = this;
-    onlineCount++;
+    onlineUserCount++;
 
     //登陆成功返回客户端
-    socket.emit("login success", {
+    socket.emit("login_success", {
       userId: socket.userId,
       userName: socket.userName
     });
-    fn(this);
+    callback();
+  },
+  disconnect: function(socket, callback) {
+    console.log("user disconnect:", socket.userId, socket.userName);
+    delete onlineUsers[socket.userId];
+    onlineUserCount--;
+    callback();
   },
   showAllUser: function() {
     return onlineUsers;
