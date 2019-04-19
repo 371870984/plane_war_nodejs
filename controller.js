@@ -1,6 +1,7 @@
 var User = require("./javascript/user");
 var Room = require("./javascript/room");
 module.exports = function(port) {
+  "use strict";
   var io = require("socket.io")(port || 3000);
 
   io.on("connection", socket => {
@@ -9,6 +10,7 @@ module.exports = function(port) {
     socket.on("login", obj => {
       User.login(socket, obj, function() {
         //登陆成功广播
+        console.log("新用户登陆成功:",socket)
         socket.broadcast.emit("new user login", {
           userId: socket.userId,
           userName: socket.userName
@@ -21,7 +23,7 @@ module.exports = function(port) {
       try {
         Room.createRoom(socket, obj.roomName, () => {
           //创建房间成功
-          console.log("创建房间成功回调");
+          console.log("创建房间成功回调:",socket);
         });
       } catch (error) {
         console.log("创建房间失败回调", error);
@@ -29,8 +31,9 @@ module.exports = function(port) {
     });
     //加入房间
     socket.on("join_room", obj => {
-      console.log("join room: ", socket.userId, obj);
+      console.log("join room: ", socket, obj);
       Room.joinRoom(socket, obj.roomId, () => {
+        console.log("加入房间成功:",socket)
         io.to(obj.roomId).emit("other_joined_room", {
           userId: socket.userId,
           userName: socket.userName
@@ -46,16 +49,13 @@ module.exports = function(port) {
     //获取房间信息
     socket.on("get_room_userList", obj => {
       Room.getRoomUserList(socket, obj.roomId, () => {
-        console.log(obj.roomId, "房间信息获取成功");
+        console.log(obj.roomId, "房间信息获取成功",socket);
       });
     });
     //离开房间
     socket.on("leave_room", () => {
       console.log("leave room: ", socket.userId, obj);
-      Room.leaveRoom(socket, () => {
-        console.log("离开房间成功");
-        io.to(socket.roomId).emit("leave_room_success", socket.userId); // broadcast to everyone in the room
-      });
+      leaveRoom(socket);
     });
 
     //用户断开
@@ -63,10 +63,7 @@ module.exports = function(port) {
       console.log("user disconnect: ", socket, reason);
       //如果在房间内，房间断开连接
       if (!!socket.roomId) {
-        Room.leaveRoom(socket, socket.roomId, () => {
-          console.log("离开房间成功");
-          io.to(socket.roomId).emit("leave_room_success", socket.userId); // broadcast to everyone in the room
-        });
+        leaveRoom(socket);
       }
       User.disconnect(socket, function() {
         console.log("用户断开成功");
@@ -85,4 +82,11 @@ module.exports = function(port) {
       console.log("error: ", socket.userId, error);
     });
   });
+
+  function leaveRoom(socket) {
+    Room.leaveRoom(socket, () => {
+      console.log("离开房间成功");
+      io.to(socket.roomId).emit("other_leave_room_success", socket.userId); // broadcast to everyone in the room
+    });
+  }
 };
